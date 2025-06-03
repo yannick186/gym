@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalender mit Monatsnavigation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f7f7f7;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #month-year {
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    .day {
+      background-color: white;
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+
+    .day:hover {
+      background-color: #e6f7ff;
+    }
+
+    .marked {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .weekday {
+      font-weight: bold;
+      background-color: #ddd;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interaktiver Kalender</h1>
+  <div id="nav">
+    <button id="prev">&larr; Vorheriger Monat</button>
+    <div id="month-year"></div>
+    <button id="next">Nächster Monat &rarr;</button>
+  </div>
+  <div id="calendar"></div>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const monthYearLabel = document.getElementById('month-year');
+    const weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+    let currentDate = new Date();
+
+    function getStorageKey(year, month) {
+      return `markedDays-${year}-${month}`;
+    }
+
+    function renderCalendar(date) {
+      calendar.innerHTML = '';
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      // Setze Monatstitel
+      const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+      monthYearLabel.textContent = `${monthNames[month]} ${year}`;
+
+      // Lade markierte Tage
+      const storageKey = getStorageKey(year, month);
+      let markedDays = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      // Wochentage
+      weekdays.forEach(day => {
+        const div = document.createElement('div');
+        div.textContent = day;
+        div.classList.add('day', 'weekday');
+        calendar.appendChild(div);
+      });
+
+      const firstDay = new Date(year, month, 1);
+      let startDay = firstDay.getDay();
+      startDay = startDay === 0 ? 7 : startDay;
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      // Leere Felder
+      for (let i = 1; i < startDay; i++) {
+        const empty = document.createElement('div');
+        empty.classList.add('day');
+        calendar.appendChild(empty);
+      }
+
+      // Tage rendern
+      for (let day = 1; day <= daysInMonth; day++) {
+        const div = document.createElement('div');
+        div.textContent = day;
+        div.classList.add('day');
+        if (markedDays.includes(day)) {
+          div.classList.add('marked');
+        }
+
+        div.addEventListener('click', () => {
+          div.classList.toggle('marked');
+          if (div.classList.contains('marked')) {
+            markedDays.push(day);
+          } else {
+            markedDays = markedDays.filter(d => d !== day);
+          }
+          localStorage.setItem(storageKey, JSON.stringify(markedDays));
+        });
+
+        calendar.appendChild(div);
+      }
+    }
+
+    document.getElementById('prev').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar(currentDate);
+    });
+
+    document.getElementById('next').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar(currentDate);
+    });
+
+    // Initialanzeige
+    renderCalendar(currentDate);
+  </script>
+</body>
+</html>
