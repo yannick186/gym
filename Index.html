@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interaktiver Kalender mit Speicherung</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f7f7f7;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    .day {
+      background-color: white;
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+
+    .day:hover {
+      background-color: #e6f7ff;
+    }
+
+    .marked {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .weekday {
+      font-weight: bold;
+      background-color: #ddd;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kalender - Klickbare Tage mit Speicherung</h1>
+  <div id="calendar"></div>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const weekdays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+
+    // Wochentage hinzufügen
+    weekdays.forEach(day => {
+      const div = document.createElement('div');
+      div.textContent = day;
+      div.classList.add('day', 'weekday');
+      calendar.appendChild(div);
+    });
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth(); // 0 = Januar
+
+    const storageKey = `markedDays-${year}-${month}`;
+
+    // Lade markierte Tage aus dem localStorage
+    let markedDays = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+    const firstDay = new Date(year, month, 1);
+    let startDay = firstDay.getDay();
+    startDay = startDay === 0 ? 7 : startDay; // Sonntag = 7
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Leere Felder vor dem 1. Tag
+    for (let i = 1; i < startDay; i++) {
+      const empty = document.createElement('div');
+      empty.classList.add('day');
+      calendar.appendChild(empty);
+    }
+
+    // Tage erzeugen
+    for (let day = 1; day <= daysInMonth; day++) {
+      const div = document.createElement('div');
+      div.textContent = day;
+      div.classList.add('day');
+
+      // Vorherige Markierungen wiederherstellen
+      if (markedDays.includes(day)) {
+        div.classList.add('marked');
+      }
+
+      div.addEventListener('click', () => {
+        div.classList.toggle('marked');
+        if (div.classList.contains('marked')) {
+          markedDays.push(day);
+        } else {
+          markedDays = markedDays.filter(d => d !== day);
+        }
+        localStorage.setItem(storageKey, JSON.stringify(markedDays));
+      });
+
+      calendar.appendChild(div);
+    }
+  </script>
+</body>
+</html>
